@@ -1,0 +1,144 @@
+#!/bin/bash
+# Simulated main memory file
+MEMORY_FILE="main_memory.txt"
+
+# Input ALP file
+read -p "Enter the ALP input file name: " input_file
+
+# Check if the input ALP file exists
+if [ ! -f "$input_file" ]; then
+    echo "Input file does not exist."
+    exit 1
+fi
+
+# Clear the memory file before loading new content
+> "$MEMORY_FILE"
+
+# Load ALP into simulated main memory
+echo "Loading ALP program into main memory..."
+line_number=1
+while IFS= read -r line; do
+    echo "Loading line $line_number: $line"
+    echo "$line" >> "$MEMORY_FILE"
+    ((line_number++))
+done < "$input_file"
+
+echo "ALP program loaded into main memory (stored in $MEMORY_FILE)."
+
+
+input_file
+MOV AX, 1
+ADD BX, AX
+INT 21h
+
+-------------------
+This Bash script simulates the loading of an **Assembly Language Program (ALP)** into a **simulated main memory**. The main memory is represented by a text file (`main_memory.txt`), and the ALP program is read from an input file provided by the user. Let's break down each part of the script:
+
+### Step-by-Step Explanation:
+
+#### 1. **Setting up the Simulated Main Memory File:**
+   ```bash
+   MEMORY_FILE="main_memory.txt"
+   ```
+
+   - The variable `MEMORY_FILE` is assigned the name `"main_memory.txt"`. This will be used as a simulated **main memory** file where the ALP program will be loaded.
+
+#### 2. **Prompt for Input ALP File:**
+   ```bash
+   read -p "Enter the ALP input file name: " input_file
+   ```
+
+   - The `read` command prompts the user to enter the name of the **ALP input file**. The user will input the name of the file that contains the ALP program, and it will be stored in the variable `input_file`.
+
+#### 3. **Check if the Input ALP File Exists:**
+   ```bash
+   if [ ! -f "$input_file" ]; then
+       echo "Input file does not exist."
+       exit 1
+   fi
+   ```
+
+   - This block checks if the file specified by the user (`input_file`) exists.
+   - The condition `[ ! -f "$input_file" ]` checks if the file doesn't exist (`-f` checks for regular files).
+   - If the file doesn't exist, it prints `"Input file does not exist."` and exits the script with a status code `1`.
+
+#### 4. **Clear the Memory File:**
+   ```bash
+   > "$MEMORY_FILE"
+   ```
+
+   - This command clears the content of the **simulated main memory file** (`main_memory.txt`), ensuring it's empty before loading new content.
+   - The `>` operator is used to truncate the file to zero size.
+
+#### 5. **Load ALP Program into Simulated Memory:**
+   ```bash
+   echo "Loading ALP program into main memory..."
+   line_number=1
+   while IFS= read -r line; do
+       echo "Loading line $line_number: $line"
+       echo "$line" >> "$MEMORY_FILE"
+       ((line_number++))
+   done < "$input_file"
+   ```
+
+   - The script uses a `while` loop to read the **ALP input file** (`$input_file`) line by line and load it into the simulated **main memory** (represented by `main_memory.txt`).
+   - `IFS= read -r line` reads each line from the input file:
+     - `IFS=`: Disables field splitting (prevents spaces from being treated as delimiters).
+     - `-r`: Prevents backslashes from being interpreted as escape characters.
+   - For each line, the script:
+     - Prints the line number and the line content (`echo "Loading line $line_number: $line"`).
+     - Appends the line to the `main_memory.txt` file using `echo "$line" >> "$MEMORY_FILE"`.
+     - Increments the `line_number` to track the line count.
+   - This continues until all lines in the input file are read and copied to the simulated memory.
+
+#### 6. **Final Message:**
+   ```bash
+   echo "ALP program loaded into main memory (stored in $MEMORY_FILE)."
+   ```
+
+   - After the program finishes reading the input ALP file and loading it into the memory file, it prints a success message indicating that the ALP program has been loaded into memory.
+   - The message specifies that the program is stored in `main_memory.txt`.
+
+---
+
+### Example Walkthrough:
+
+#### 1. **Input ALP File (`input_file`)**:
+
+Suppose the user enters a file named `program.asm` that contains the following assembly instructions:
+
+```assembly
+MOV AX, 1
+ADD BX, AX
+INT 21h
+```
+
+#### 2. **Execution Flow**:
+
+- The script will check if the file `program.asm` exists. If not, it will print an error and exit.
+- If the file exists, it clears `main_memory.txt`.
+- The script then reads each line of the `program.asm` file and appends it to `main_memory.txt`:
+  - Line 1: `MOV AX, 1`
+  - Line 2: `ADD BX, AX`
+  - Line 3: `INT 21h`
+- Finally, it prints a message indicating that the ALP program has been successfully loaded into `main_memory.txt`.
+
+#### 3. **Output (`main_memory.txt`)**:
+
+After running the script, the **simulated main memory file** (`main_memory.txt`) will look like this:
+
+```
+MOV AX, 1
+ADD BX, AX
+INT 21h
+```
+
+---
+
+### Summary:
+
+- **Purpose**: This script simulates loading an ALP program into **main memory** (represented by a text file).
+- **File Handling**: It reads the input ALP file line by line and appends each line to the memory file.
+- **Validation**: It checks if the input file exists before proceeding and clears the memory file before loading new content.
+
+This script could be a part of a basic simulation or a tool for processing assembly language programs, where the assembly instructions are loaded into memory for further operations or analysis. Let me know if you need further clarification!

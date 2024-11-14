@@ -1,0 +1,252 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define BUFFER_SIZE 5  // Reduced buffer size for quicker full/empty demonstration
+
+int buffer[BUFFER_SIZE];  // Shared buffer
+int count = 0;            // Counter for items in the buffer
+
+sem_t empty;  // Semaphore for empty slots
+sem_t full;   // Semaphore for full slots
+pthread_mutex_t mutex;  // Mutex for critical section
+
+// Function to display the buffer's current state
+void displayBuffer() {
+    printf("Buffer: [ ");
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        if (i < count)
+            printf("%d ", buffer[i]);
+        else
+            printf("- ");  // Empty slot
+    }
+    printf("] ");
+    
+    if (count == 0) {
+        printf("(Buffer is empty)\n");
+    } else if (count == BUFFER_SIZE) {
+        printf("(Buffer is full)\n");
+    } else {
+        printf("\n");
+    }
+}
+
+// Producer function
+void* producer(void* arg) {
+    while (1) {
+        int item = rand() % 100;  // Produce a random item
+
+        sem_wait(&empty);  // Wait for an empty slot
+        pthread_mutex_lock(&mutex);  // Wait to access the buffer
+
+        buffer[count] = item;  // Produce item into buffer
+        count++;
+        printf("Producer produced: %d\n", item);
+        displayBuffer();  // Display buffer state
+
+        pthread_mutex_unlock(&mutex);  // Release buffer
+        sem_post(&full);  // Signal that a full slot is available
+
+        sleep(rand() % 2);  // Simulate production time
+    }
+}
+
+// Consumer function
+void* consumer(void* arg) {
+    while (1) {
+        sem_wait(&full);  // Wait for a full slot
+        pthread_mutex_lock(&mutex);  // Wait to access buffer
+
+        int item = buffer[--count];  // Consume item from buffer
+        printf("Consumer consumed: %d\n", item);
+        displayBuffer();  // Display buffer state
+
+        pthread_mutex_unlock(&mutex);  // Release buffer
+        sem_post(&empty);  // Signal that an empty slot is available
+
+        sleep(rand() % 2);  // Simulate consumption time
+    }
+}
+
+int main() {
+    pthread_t prod_thread, cons_thread;
+
+    // Initialize semaphores and mutex
+    sem_init(&empty, 0, BUFFER_SIZE);  // Initially, all slots are empty
+    sem_init(&full, 0, 0);  // Initially, no slots are full
+    pthread_mutex_init(&mutex, NULL);
+
+    // Create producer and consumer threads
+    pthread_create(&prod_thread, NULL, producer, NULL);
+    pthread_create(&cons_thread, NULL, consumer, NULL);
+
+    // Wait for threads to finish (optional, typically runs indefinitely)
+    pthread_join(prod_thread, NULL);
+    pthread_join(cons_thread, NULL);
+
+    // Clean up
+    sem_destroy(&empty);
+    sem_destroy(&full);
+    pthread_mutex_destroy(&mutex);
+
+    return 0;
+}
+
+
+
+
+----------------------------------------------------
+This Bash script manages a **student database** stored in a file (`students.txt`) and allows the user to perform four primary operations on it: **Insert**, **Delete**, **Update**, and **Search**. These operations are performed through a simple text-based menu system. Below is a detailed explanation of how the script works:
+
+### 1. **Database File (`students.txt`)**:
+   The script interacts with a text file called `students.txt` that serves as the simulated database for student records. Each record in this file consists of a student's ID, name, age, and grade, separated by a pipe (`|`) symbol. An example record might look like:
+   ```
+   1|John Doe|20|A
+   2|Jane Smith|22|B
+   ```
+
+---
+
+### 2. **Functions Defined in the Script**:
+
+#### 2.1 **Menu Function (`show_menu`)**:
+   This function displays the menu options to the user.
+   ```bash
+   show_menu() {
+       echo "Choose an operation:"
+       echo "1) Insert"
+       echo "2) Delete"
+       echo "3) Update"
+       echo "4) Search"
+       echo "5) Exit"
+   }
+   ```
+   - It prints out five choices:
+     - **1**: Insert a new student record.
+     - **2**: Delete an existing student record.
+     - **3**: Update an existing student record.
+     - **4**: Search for a student by ID.
+     - **5**: Exit the script.
+
+#### 2.2 **Insert Function (`insert_student`)**:
+   This function inserts a new student record into the database.
+   ```bash
+   insert_student() {
+       read -p "Enter Student ID: " id
+       read -p "Enter Student Name: " name
+       read -p "Enter Student Age: " age
+       read -p "Enter Student Grade: " grade
+       echo "$id|$name|$age|$grade" >> $DB_FILE
+       echo "Student record inserted successfully."
+   }
+   ```
+   - The user is prompted to enter the student's **ID**, **Name**, **Age**, and **Grade**.
+   - The entered data is formatted into the format `id|name|age|grade`, and then appended to the `students.txt` file using `echo "$id|$name|$age|$grade" >> $DB_FILE`.
+   - Once the record is added, a success message is displayed.
+
+#### 2.3 **Delete Function (`delete_student`)**:
+   This function deletes a student record by their **ID**.
+   ```bash
+   delete_student() {
+       read -p "Enter Student ID to delete: " id
+       grep -v "^$id|" $DB_FILE > temp.txt && mv temp.txt $DB_FILE
+       echo "Student record deleted if ID was found."
+   }
+   ```
+   - The user is asked to provide a **Student ID** to delete.
+   - `grep -v "^$id|" $DB_FILE` searches for all lines in `students.txt` that do not start with the given **ID** (the `^` signifies the start of the line, and `|` ensures it matches the entire ID).
+   - The non-matching lines are saved to a temporary file (`temp.txt`), and then the `temp.txt` file is moved back to `students.txt`, effectively deleting the line corresponding to the provided **ID**.
+   - A message is printed to inform the user that the record was deleted (if the ID was found).
+
+#### 2.4 **Update Function (`update_student`)**:
+   This function allows the user to update a student record by **ID**.
+   ```bash
+   update_student() {
+       read -p "Enter Student ID to update: " id
+       if grep -q "^$id|" $DB_FILE; then
+           grep -v "^$id|" $DB_FILE > temp.txt
+           mv temp.txt $DB_FILE
+           read -p "Enter new Name: " name
+           read -p "Enter new Age: " age
+           read -p "Enter new Grade: " grade
+           echo "$id|$name|$age|$grade" >> $DB_FILE
+           echo "Student record updated successfully."
+       else
+           echo "Student ID not found."
+       fi
+   }
+   ```
+   - The user is prompted for the **Student ID** to update.
+   - The script checks if the **ID** exists in the file using `grep -q "^$id|" $DB_FILE`.
+   - If the **ID** is found:
+     - It removes the existing record by excluding the line that starts with the given **ID** (`grep -v "^$id|"`).
+     - The updated student details are then requested (new **Name**, **Age**, **Grade**).
+     - The new record is appended to `students.txt` in the format `id|name|age|grade`.
+   - If the **ID** is not found, a message saying "Student ID not found" is displayed.
+
+#### 2.5 **Search Function (`search_student`)**:
+   This function allows the user to search for a student record by **ID**.
+   ```bash
+   search_student() {
+       read -p "Enter Student ID to search: " id
+       grep "^$id|" $DB_FILE && echo "Record found." || echo "Record not found."
+   }
+   ```
+   - The user is asked for the **Student ID** to search.
+   - The script uses `grep "^$id|"` to search for a line in `students.txt` that starts with the given **ID**.
+   - If the record is found, it prints "Record found". If not, it prints "Record not found".
+
+---
+
+### 3. **Main Script Loop**:
+
+The script enters a loop that continuously presents the user with the menu options until the user chooses to exit:
+
+```bash
+while true; do
+    show_menu
+    read -p "Enter your choice: " choice
+    case $choice in
+        1) insert_student ;;
+        2) delete_student ;;
+        3) update_student ;;
+        4) search_student ;;
+        5) exit 0 ;;
+        *) echo "Invalid choice, please try again." ;;
+    esac
+done
+```
+
+- The `while true` loop runs indefinitely, displaying the menu and asking for a user choice.
+- Based on the user's choice (`$choice`), the script calls the appropriate function:
+  - **1**: Calls `insert_student` to add a record.
+  - **2**: Calls `delete_student` to delete a record.
+  - **3**: Calls `update_student` to modify a record.
+  - **4**: Calls `search_student` to look up a record.
+  - **5**: Exits the script.
+- If an invalid choice is entered, it prints an error message.
+
+### 4. **Example Usage**:
+   - **Insert**: When the user chooses option 1, they will be prompted for the student details, which are then added to `students.txt`.
+   - **Delete**: When the user chooses option 2, the student record with the specified **ID** is removed from the file.
+   - **Update**: When the user chooses option 3, they are asked to enter a new name, age, and grade for the student with the given **ID**.
+   - **Search**: When the user chooses option 4, they can search for a student by **ID** and see if the record exists in the database.
+
+---
+
+### 5. **Advantages and Limitations**:
+
+#### Advantages:
+- **Simple User Interface**: It provides a clear, text-based menu for interacting with the student records.
+- **CRUD Operations**: It supports basic CRUD (Create, Read, Update, Delete) operations on the student database.
+
+#### Limitations:
+- **Data Persistence**: The script directly edits `students.txt`, which means any changes to the file will persist. If the script is terminated abruptly, there could be issues with file integrity.
+- **No Validation**: The script does not validate the input data (e.g., checking that **Age** is a number or **Grade** is a valid grade).
+
+---
+
+### Conclusion:
+This script is an effective, simple solution to manage student records with basic operations like insert, delete, update, and search. It uses a text file as a simple database and offers a user-friendly interface through a menu system.

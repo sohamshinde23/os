@@ -1,0 +1,362 @@
+#!/bin/bash
+
+# Function for if-else statement
+if_else_demo() {
+    read -p "Enter your age: " age
+    if (( age < 18 )); then
+        echo "You are a minor."
+    elif (( age <= 65 )); then
+        echo "You are an adult."
+    else
+        echo "You are a senior."
+    fi
+}
+
+# Function for for loop to print numbers from start to end
+for_loop_demo() {
+    read -p "Enter the start number: " start
+    read -p "Enter the end number: " end
+    for (( i=start; i<=end; i++ )); do
+        echo "Number $i"
+    done
+}
+
+# Function to check if a number is prime
+is_prime() {
+    local num=$1
+    if (( num <= 1 )); then
+        return 1
+    fi
+    for (( i=2; i*i<=num; i++ )); do
+        if (( num % i == 0 )); then
+            return 1
+        fi
+    done
+    return 0
+}
+
+# Function for while loop demonstration (prime numbers)
+while_loop_demo() {
+    read -p "Enter a start number: " start
+    read -p "Enter an end number: " end
+    while (( start <= end )); do
+        if is_prime $start; then
+            echo "Prime number: $start"
+        fi
+        ((start++))
+    done
+}
+
+# Function to calculate factorial of a number
+factorial() {
+    local num=$1
+    local factorial=1
+    local i=1
+    until (( i > num )); do
+        factorial=$(( factorial * i ))
+        ((i++))
+    done
+    echo $factorial
+}
+
+# Function for until loop demonstration (factorial)
+until_loop_demo() {
+    read -p "Enter a number to calculate factorial: " num
+    result=$(factorial $num)
+    echo "Factorial of $num is $result"
+}
+
+# Display the menu
+while true; do
+    echo "Menu:"
+    echo "1) If-Else Statement"
+    echo "2) For Loop"
+    echo "3) While Loop"
+    echo "4) Until Loop"
+    echo "5) Exit"
+    read -p "Choose an option: " choice
+
+    case $choice in
+        1)
+            if_else_demo
+            ;;
+        2)
+            for_loop_demo
+            ;;
+        3)
+            while_loop_demo
+            ;;
+        4)
+            until_loop_demo
+            ;;
+        5)
+            echo "Exiting..."
+            break
+            ;;
+        *)
+            echo "Invalid option, please try again."
+            ;;
+    esac
+done
+
+----------------------------------------------------------
+By Siddhant
+-----------------------------------------------------------
+
+PROGARM:
+
+1)	Print Sum of Digits of a given number using command line argument
+CODE:
+x=$1
+sum=0
+n=$x
+while [ $n -gt 0 ];
+do
+   temp=$(expr $n % 10)
+   sum=$(expr $sum + $temp)
+   n=$(expr $n / 10)
+done
+echo "The sum of digits is $sum"
+OUTPUT:
+sid@SID:~/shell_scripts$ ./add_digit.sh 27
+The sum of digits is 9
+sid@SID:~/shell_scripts$ ./add_digit.sh 998
+The sum of digits is 26
+
+
+2) Write a shell script using function for following:
+1)average of given numbers
+CODE:
+echo "Enter the number of values: "
+read x
+sum=0
+i=1
+SCALE=2
+while [ $i -le $x ] ;
+do
+   echo "Enter the number $i: "
+   read n
+   sum=$(expr $sum + $n)
+   let i++;
+done
+echo "The average of numbers is: $(echo "scale=$SCALE; $sum / $x" | bc -l)"
+OUTPUT:
+sid@SID:~/shell_scripts$ ./average.sh
+Enter the number of values:
+4
+Enter the number 1:
+40
+Enter the number 2:
+64
+Enter the number 3:
+52
+Enter the number 4:
+20
+The average of numbers is: 44
+2)	Max  digit from given number
+CODE:
+echo "Enter the amount of numbers: "
+read x
+sum=0
+i=1
+max=0
+while [ $i -le $x ] ;
+do
+   echo "Enter the number $i: "
+   read n
+   if [ $n -gt $max ]
+   then
+        max=$n
+   fi
+   let i++;
+done
+echo "The maximum of the given numbers is: $max"
+OUTPUT:
+sid@SID:~/shell_scripts$ ./max_digit.sh
+Enter the amount of numbers:
+5
+Enter the number 1:
+0
+Enter the number 2:
+46
+Enter the number 3:
+22
+Enter the number 4:
+7
+Enter the number 5:
+86
+The maximum of the given numbers is: 86
+3)	min digit  from given number
+CODE:
+echo "Enter the amount of numbers: "
+read x
+i=2
+echo "Enter the number 1"
+read min
+while [ $i -le $x ] ;
+do
+   echo "Enter the number $i: "
+   read n
+   if [ $n -lt $min ]
+   then
+        min=$n
+   fi
+   let i++;
+done
+echo "The minimum of the given numbers is: $min"
+OUTPUT:
+sid@SID:~/shell_scripts$ ./min_digit.sh
+Enter the amount of numbers:
+4
+Enter the number 1
+0
+Enter the number 2:
+46
+Enter the number 3:
+22
+Enter the number 4:
+7
+The minimum of the given numbers is: 0
+
+
+
+
+
+
+
+3) Perform sorting on given array elements
+CODE:
+bubble_sort() {
+  local arr=("$@")
+  local n=${#arr[@]}
+  local temp
+
+  for ((i = 0; i < n; i++)); do
+    for ((j = 0; j < n - i - 1; j++)); do
+      if [[ ${arr[j]} -gt ${arr[j + 1]} ]]; then
+        temp=${arr[j]}
+        arr[j]=${arr[j + 1]}
+        arr[j + 1]=$temp
+      fi
+    done
+  done
+
+  echo "${arr[@]}"
+}
+
+echo "Enter the elements of the array:"
+read -a arr
+
+echo "Original array: ${arr[@]}"
+
+sorted_arr=($(bubble_sort "${arr[@]}"))
+
+echo "Sorted array: ${sorted_arr[@]}"
+OUTPUT:
+sid@SID:~/shell_scripts$ ./sort_array.sh
+Enter the elements of the array:
+9 1 4 3 7 0
+Original array: 9 1 4 3 7 0
+Sorted array: 0 1 3 4 7 9
+
+
+
+4) Program to find factorial of a given number with and without recursion
+CODE (with recursion):
+factorial_recursive() {
+  if [ $1 -le 1 ]; then
+    echo 1
+  else
+    local temp=$(( $1 - 1 ))
+    local result=$(factorial_recursive $temp)
+    echo $(( $1 * result ))
+  fi
+}
+
+echo "Enter a number to find its factorial (using recursion):"
+read number
+
+result=$(factorial_recursive $number)
+
+echo "Factorial of $number is $result"
+OUTPUT:
+sid@SID:~/shell_scripts$ ./with_recur_fact.sh
+Enter a number to find its factorial (using recursion):
+4
+Factorial of 4 is 24
+sid@SID:~/shell_scripts$ ./with_recur_fact.sh
+Enter a number to find its factorial (using recursion):
+3
+Factorial of 3 is 6
+CODE (without recursion):
+factorial_non_recursive() {
+  local n=$1
+  local result=1
+
+  for (( i = 1; i <= n; i++ )); do
+    result=$(( result * i ))
+  done
+
+  echo $result
+}
+
+echo "Enter a number to find its factorial (without recursion):"
+read number
+
+result=$(factorial_non_recursive $number)
+
+echo "Factorial of $number is $result"
+OUTPUT:
+sid@SID:~/shell_scripts$ ./without_recur_fact.sh
+Enter a number to find its factorial (without recursion):
+4
+Factorial of 4 is 24
+
+
+
+5)Program to check file type and permission for a given file
+CODE:
+echo "Enter the file path:"
+read file
+
+if [ -e "$file" ]; then
+  file_type=$(file -b "$file")
+  permissions=$(stat -c "%A" "$file")
+
+  echo "File type: $file_type"
+  echo "Permissions: $permissions"
+else
+  echo "File does not exist."
+fi
+OUTPUT:
+sid@SID:~/shell_scripts$ ./file_type.sh
+Enter the file path:
+/home/sid/shell_scripts/sort_array.sh
+File type: ASCII text
+Permissions: -rwxr-xr-x
+
+
+
+6) Check entered string is palindrome or not?	
+CODE:
+echo "Enter a string:"
+read str
+
+len=${#str}
+for (( i=0; i<$len/2; i++ )); do
+  if [ "${str:$i:1}" != "${str: -$(($i + 1)):1}" ]; then
+    echo "The string is not a palindrome."
+    exit 0
+  fi
+done
+
+echo "The string is a palindrome."
+OUTPUT:
+sid@SID:~/shell_scripts$ ./palindrome.sh
+Enter a string:
+KAYAK
+The string is a palindrome.
+sid@SID:~/shell_scripts$ ./palindrome.sh
+Enter a string:
+SIDDHANT
+The string is not a palindrome.
