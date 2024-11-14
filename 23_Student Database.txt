@@ -1,99 +1,66 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <unistd.h>
-
-#define BUFFER_SIZE 5  // Reduced buffer size for quicker full/empty demonstration
-
-int buffer[BUFFER_SIZE];  // Shared buffer
-int count = 0;            // Counter for items in the buffer
-
-sem_t empty;  // Semaphore for empty slots
-sem_t full;   // Semaphore for full slots
-pthread_mutex_t mutex;  // Mutex for critical section
-
-// Function to display the buffer's current state
-void displayBuffer() {
-    printf("Buffer: [ ");
-    for (int i = 0; i < BUFFER_SIZE; i++) {
-        if (i < count)
-            printf("%d ", buffer[i]);
-        else
-            printf("- ");  // Empty slot
-    }
-    printf("] ");
-    
-    if (count == 0) {
-        printf("(Buffer is empty)\n");
-    } else if (count == BUFFER_SIZE) {
-        printf("(Buffer is full)\n");
-    } else {
-        printf("\n");
-    }
+#!/bin/bash
+# File to store student records
+DB_FILE="students.txt"
+# Function to display menu
+show_menu() {
+    echo "Choose an operation:"
+    echo "1) Insert"
+    echo "2) Delete"
+    echo "3) Update"
+    echo "4) Search"
+    echo "5) Exit"
+}
+# Function to insert a new student record
+insert_student() {
+    read -p "Enter Student ID: " id
+    read -p "Enter Student Name: " name
+    read -p "Enter Student Age: " age
+    read -p "Enter Student Grade: " grade
+    echo "$id|$name|$age|$grade" >> $DB_FILE
+    echo "Student record inserted successfully."
 }
 
-// Producer function
-void* producer(void* arg) {
-    while (1) {
-        int item = rand() % 100;  // Produce a random item
-
-        sem_wait(&empty);  // Wait for an empty slot
-        pthread_mutex_lock(&mutex);  // Wait to access the buffer
-
-        buffer[count] = item;  // Produce item into buffer
-        count++;
-        printf("Producer produced: %d\n", item);
-        displayBuffer();  // Display buffer state
-
-        pthread_mutex_unlock(&mutex);  // Release buffer
-        sem_post(&full);  // Signal that a full slot is available
-
-        sleep(rand() % 2);  // Simulate production time
-    }
+# Function to delete a student record by ID
+delete_student() {
+    read -p "Enter Student ID to delete: " id
+    grep -v "^$id|" $DB_FILE > temp.txt && mv temp.txt $DB_FILE
+    echo "Student record deleted if ID was found."
 }
 
-// Consumer function
-void* consumer(void* arg) {
-    while (1) {
-        sem_wait(&full);  // Wait for a full slot
-        pthread_mutex_lock(&mutex);  // Wait to access buffer
-
-        int item = buffer[--count];  // Consume item from buffer
-        printf("Consumer consumed: %d\n", item);
-        displayBuffer();  // Display buffer state
-
-        pthread_mutex_unlock(&mutex);  // Release buffer
-        sem_post(&empty);  // Signal that an empty slot is available
-
-        sleep(rand() % 2);  // Simulate consumption time
-    }
+# Function to update a student record by ID
+update_student() {
+    read -p "Enter Student ID to update: " id
+    if grep -q "^$id|" $DB_FILE; then
+        grep -v "^$id|" $DB_FILE > temp.txt
+        mv temp.txt $DB_FILE
+        read -p "Enter new Name: " name
+        read -p "Enter new Age: " age
+        read -p "Enter new Grade: " grade
+        echo "$id|$name|$age|$grade" >> $DB_FILE
+        echo "Student record updated successfully."
+    else
+        echo "Student ID not found."
+    fi
 }
 
-int main() {
-    pthread_t prod_thread, cons_thread;
-
-    // Initialize semaphores and mutex
-    sem_init(&empty, 0, BUFFER_SIZE);  // Initially, all slots are empty
-    sem_init(&full, 0, 0);  // Initially, no slots are full
-    pthread_mutex_init(&mutex, NULL);
-
-    // Create producer and consumer threads
-    pthread_create(&prod_thread, NULL, producer, NULL);
-    pthread_create(&cons_thread, NULL, consumer, NULL);
-
-    // Wait for threads to finish (optional, typically runs indefinitely)
-    pthread_join(prod_thread, NULL);
-    pthread_join(cons_thread, NULL);
-
-    // Clean up
-    sem_destroy(&empty);
-    sem_destroy(&full);
-    pthread_mutex_destroy(&mutex);
-
-    return 0;
+# Function to search for a student record by ID
+search_student() {
+    read -p "Enter Student ID to search: " id
+    grep "^$id|" $DB_FILE && echo "Record found." || echo "Record not found."
 }
-
+# Main script loop
+while true; do
+    show_menu
+    read -p "Enter your choice: " choice
+    case $choice in
+        1) insert_student ;;
+        2) delete_student ;;
+        3) update_student ;;
+        4) search_student ;;
+        5) exit 0 ;;
+        *) echo "Invalid choice, please try again." ;;
+    esac
+done
 
 
 
